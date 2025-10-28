@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* CSS to ensure content doesn't go behind fixed elements */
+        .content-wrapper {
+            margin-left: 260px; /* Space for the sidebar */
+            padding-top: 80px; /* Space for the top header */
+            background-color: #f0f2f5; /* Light gray background for main content area */
+            min-height: 100vh;
+        }
+
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 260px; /* Aligns to the right of the sidebar */
+            right: 0;
+            z-index: 1020; /* Above the sidebar */
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    {% include "student_header.html" %}
+
+    <div class="top-header" style="border-radius: 10px; margin:10px">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-start">
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:student' %}">Student</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:applied' %}">Applied</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:agent' %}">Agent</a>
+            </div>
+        </div>
+    </div>
+    <div class="content-wrapper">
+        <div class="bg-white overflow-hidden rounded-lg p-0 mx-2">
+            <div class="p-4">
+                <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                    {% for message in messages %}
+                    <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                        data-bs-delay="5000" data-bs-autohide="true"> 
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                {{ message }}
+                            </div>
+                            <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="bg-warning text-black p-4 d-flex justify-content-between align-items-center rounded mb-4" style="--bs-bg-opacity: .9;">
+                        <h5 class="mb-0 fs-5">Applied Information Form</h5>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success text-white">
+                                <i class="bi bi-save me-1"></i> <span class="text-white">Save</span>
+                            </button>
+                            <a href="{% url 'contact:applied' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Cancel and Close">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_name" class="form-label">Student Name</label>
+                                <input type="text" class="form-control" id="student_name" name="student_name" required value="{{student.name}}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_phone" class="form-label">Mobile Number</label>
+                                <input type="number" class="form-control" id="student_phone" name="student_phone" value="{{student.phone}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_street" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="student_street" name="student_street" placeholder="Street" value="{{student.street}}">
+                                <input type="text" class="form-control mt-2" id="student_street2" name="student_street2" placeholder="Street 2" value="{{student.street2}}">
+                                <div class="row mt-2">
+                                    <div class="col-4">
+                                        <input type="text" class="form-control" id="student_city" name="student_city" placeholder="City" value="{{student.city}}">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control" id="student_zip" name="student_zip" placeholder="Pin Code" value="{{student.zip}}">
+                                    </div>
+                                    <div class="col-4">
+                                        <select class="form-select" id="student_state" name="student_state">
+                                            <option value=""></option>
+                                            {% for stat in states %}
+                                                <option value="{{ stat.id }}" {% if student.state_id and student.state_id.id == stat.id %}selected{% endif %}>
+                                                    {{ stat.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="student_email" name="student_email" value="{{student.email}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="student_dob" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="student_dob" name="student_dob" value="{{student.dob|date:'Y-m-d'}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_passport" class="form-label">Passport Number</label>
+                                <input type="text" class="form-control" id="student_passport" name="student_passport" value="{{student.passport_number}}">
+                                <small id="passport_feedback" class="text-danger"></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="gender" class="form-label">Gender</label><br>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="male" name="gender" value="Male" {% if student.gender == 'Male' %}checked{% endif %}>
+                                        <label class="form-check-label" for="male">Male</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="female" name="gender" value="Female" {% if student.gender == 'Female' %}checked{% endif %}>
+                                        <label class="form-check-label" for="female">Female</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="other" name="gender" value="Other" {% if student.gender == 'Other' %}checked{% endif %}>
+                                        <label class="form-check-label" for="other">Other</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="student_nationality" class="form-label">Nationality</label>
+                                <select class="form-select" id="student_nationality" name="student_nationality">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.id }}" {% if student.nationality and student.nationality.id == country.id %}selected{% endif %}>
+                                            {{ country.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#student_passport").on("keyup change", function(){
+                var passport = $(this).val();
+                if(passport.length > 0){
+                    $.ajax({
+                        url: "{% url 'contact:check_passport' %}",
+                        data: {
+                            "passport": passport
+                        },
+                        dataType: "json",
+                        success: function(data){
+                            if(data.exists){
+                                $("#passport_feedback").text("⚠️ Passport number already exists!");
+                                $("#student_passport").addClass("is-invalid");
+                            } else {
+                                $("#passport_feedback").text("");
+                                $("#student_passport").removeClass("is-invalid");
+                            }
+                        }
+                    });
+                } else {
+                    $("#passport_feedback").text("");
+                    $("#student_passport").removeClass("is-invalid");
+                }
+            });
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl)
+            })
+            toastList.forEach(toast => toast.show())  // Show toasts programmatically
+        });
+    </script>
+</body>
+</html>

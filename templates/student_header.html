@@ -1,0 +1,129 @@
+{% load static %}
+<style>
+    /* CSS for the sidebar */
+    .sidebar {
+        width: 240px;
+        background: #fff;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1000;
+        box-shadow: 0 8px 10px -5px rgba(0,0,0,.2), 0 16px 24px 2px rgba(0,0,0,.14), 0 6px 30px 5px rgba(0,0,0,.12);
+        transition: all 0.3s ease;
+        padding-top: 20px;
+    }
+    
+    .sidebar .logo {
+        padding: 1rem 1rem 0;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .sidebar .logo a {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: black;
+        /* color: #344767; */
+        text-decoration: none;
+    }
+
+    .sidebar-wrapper {
+        position: relative;
+        height: calc(100vh - 75px);
+        overflow: auto;
+        width: 100%;
+    }
+
+    /* .nav {
+        display: flex;
+        flex-direction: column;
+        padding-left: 0;
+        margin-bottom: 0;
+        list-style: none;
+        border: 1px solid red;
+    } */
+
+    .nav-item {
+       
+        border-radius: 0.5rem;
+        font-size: 15px;
+    }
+    
+    .nav-link {
+        color:black;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-link i {
+        margin-right: 15px;
+        font-size: 1.25rem;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* color: #67748e; */
+        color:black;
+        transition: all 0.3s ease;
+    }
+
+</style>
+
+<div class="sidebar" style="border-radius: 10px;margin:5px">
+    <div class="logo">
+        <img src="{% static 'images/excelencia-logo-603px-1-2-2048x749.png' %}" alt="Excelencia Logo">
+    </div>
+    <hr style="margin-bottom:5px">
+    <div class="sidebar-wrapper">
+        <ul class="nav" style="display: flex;flex-direction: column;padding-left: 0;margin-bottom: 0;list-style: none;">
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %} bg-warning text-white rounded-3 fw-bold {% endif %}" href="{% url 'contact:dashboard' %}">
+                    <i class="bi bi-house-door {% if request.resolver_match.url_name == 'dashboard' %} text-white {% endif %}"></i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name in 'contact:student,contact:students_create,contact:student_edit,contact:agent,contact:agent_create,contact:agent_update,contact:agent_delete,contact:applied,contact:applied_create,contact:applied_update,contact:applied_delete' %} bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:student' %}">
+                    <i class="bi bi-people {% if request.resolver_match.url_name in 'contact:student,contact:students_create,contact:student_edit,contact:agent,contact:agent_create,contact:agent_update,contact:agent_delete,contact:applied,contact:applied_create,contact:applied_update,contact:applied_delete' %} text-white {% endif %}"></i>
+                    <p>Contact</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name in 'contact:university,contact:university-application,contact:university-application-create' %} bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:university' %}">
+                    <i class="bi bi-building {% if request.resolver_match.url_name in 'contact:university,contact:university-application,contact:university-application-create' %}text-white {% endif %}"></i>
+                    <p>Univeristy</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name in 'contact:visa,contact:academic,contact:studenstatus,contact:interviewstatus,contact:paymentstatus,contact:paymentmethod,contact:academicyear,' %} bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:visa' %}">
+                    <i class="bi bi-gear {% if request.resolver_match.url_name in 'contact:visa,contact:academic,contact:studenstatus,contact:interviewstatus,contact:paymentstatus,contact:paymentmethod,contact:academicyear,' %}text-white {% endif %}"></i>
+                    <p>Master</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name in 'contact:state,contact:country,contact:currency' %}bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:state'%}">
+                    <i class="bi bi-geo-alt {% if request.resolver_match.url_name in 'contact:state,contact:country,contact:currency' %}text-white {% endif %}"></i>
+                    <p>Location</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link {% if request.resolver_match.url_name in 'contact:profile' %}bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:profile'%}">
+                    <i class="bi bi-person-circle {% if request.resolver_match.url_name in 'contact:profile' %}text-white {% endif %}"></i>
+                    <p>Profile</p>
+                </a>
+            </li>
+            <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
+                <a class="nav-link" href="{% url 'accounts:logout' %}">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+

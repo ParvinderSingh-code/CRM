@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Year</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Bootstrap CSS & JS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<style>
+    .content-wrapper { margin-left: 260px; padding-top: 80px; background-color: #f0f2f5; min-height: 100vh; }
+    .top-header { position: fixed; top: 0; left: 260px; right: 0; z-index: 1020; background: #fff;
+                  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); height: 60px; display: flex; align-items: center; padding: 0 20px;}
+    th.sortable { cursor: pointer; position: relative; padding-right: 25px; }
+    .sort-icon { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: #999; }
+    .sortable.sorted-asc .sort-icon, .sortable.sorted-desc .sort-icon { color: #333; }
+</style>
+</head>
+<body class="bg-light">
+{% include "student_header.html"%}
+
+<div class="top-header" style="border-radius: 10px; margin:10px">
+    <div class="container-fluid d-flex justify-content-start">
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:visa'%}">Visa Type</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:academic'%}">Academic Qualification</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:studenstatus'%}">Student Status</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:interviewstatus'%}">Interview Status</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentstatus'%}">Payment Status</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentmethod'%}">Payment Method</a>
+        <a class="navbar-brand text-dark me-4" href="{% url 'contact:academicyear'%}">Academic Year</a>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div class="bg-white p-4 mx-2" style="border-radius: 10px;">
+        <div class="d-flex align-items-center mb-4 gap-2">
+            <button type="button" class="btn btn-warning" style="padding:5px 15px; border-radius: 5px; color:white;"
+                data-bs-toggle="modal" data-bs-target="#AcademicYearModal">New</button>
+            <b>{{ page_title }}</b>
+        </div>
+
+        <!-- Toast Messages -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index:1100">
+            {% for message in messages %}
+            <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                 data-bs-delay="5000" data-bs-autohide="true">
+                <div class="d-flex">
+                    <div class="toast-body">{{ message }}</div>
+                    <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Table -->
+        <main>
+            <div class="bg-white overflow-hidden border border-gray-100 rounded-lg">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search Academic Year...">
+                    <div class="d-flex align-items-center">
+                        <label for="pageSize" class="me-2 mb-0">Show</label>
+                        <select id="pageSize" class="form-select w-auto">
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span class="ms-2">entries</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto m-2">
+                    <table class="table table-hover" id="academicTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="sortable" data-column-index="0"># <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th class="sortable" data-column-index="1">Name <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th class="sortable" data-column-index="2">Start Date <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th class="sortable" data-column-index="3">End Date <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for year in academic_year %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <a href="#" class="open-edit-modal" style="color:black; text-decoration:none;"
+                                       data-bs-toggle="modal" data-bs-target="#EditAYModal"
+                                       data-ay-id="{{ year.id }}" data-ay-name="{{ year.name }}">
+                                       {{ year.name }}
+                                    </a>
+                                </td>
+                                <td>{{ year.start_date }}</td>
+                                <td>{{ year.end_date }}</td>
+                                <td class="text-end">
+                                    <a href="#" class="open-delete-modal" style="color:red; text-decoration:none;"
+                                       data-bs-toggle="modal" data-bs-target="#DeleteAYModal"
+                                       data-ay-delete-id="{{ year.id }}" data-ay-delete-name="{{ year.name }}"
+                                       data-url="{% url 'contact:academicyear_delete' year.id %}">
+                                       <i class="bi bi-trash3 text-danger"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-16 text-gray-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                        </svg>
+                                        <h5 class="text-lg font-semibold">No Academic Year records found</h5>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-between m-3">
+                        <button class="btn btn-sm btn-outline-secondary" id="prevPage">Previous</button>
+                        <span id="pageInfo" class="align-self-center"></span>
+                        <button class="btn btn-sm btn-outline-secondary" id="nextPage">Next</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="AcademicYearModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">Create New Academic Year</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'contact:academicyear_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="academic_year_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" name="academic_year_start_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" name="academic_year_end_date" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning text-white">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="EditAYModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">Edit Academic Year</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="editAYForm">{% csrf_token %}
+                    <input type="hidden" id="edit_ay_id" name="id">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="edit_ay_name" name="edit_ay_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="edit_ay_start_date" name="edit_ay_start_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="edit_ay_end_date" name="edit_ay_end_date" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning text-white">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+{% include "delete_modal.html" with modal_id="DeleteAYModal" %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const table = document.getElementById("academicTable");
+    let rows = Array.from(table.querySelectorAll("tbody tr"));
+    const searchInput = document.getElementById("searchInput");
+    const headers = table.querySelectorAll("th.sortable");
+    const pageSizeSelect = document.getElementById("pageSize");
+    const pageInfo = document.getElementById("pageInfo");
+    const prevPageBtn = document.getElementById("prevPage");
+    const nextPageBtn = document.getElementById("nextPage");
+
+    let currentPage = 1;
+    let rowsPerPage = parseInt(pageSizeSelect.value);
+    let sortColumnIndex = -1;
+    let sortDirection = 'asc';
+
+    function renderTable() {
+        let filteredRows = rows.filter(r => r.innerText.toLowerCase().includes(searchInput.value.toLowerCase()));
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = Math.min(start + rowsPerPage, totalRows);
+
+        rows.forEach(r => r.style.display = "none");
+        filteredRows.slice(start, end).forEach(r => r.style.display = "");
+
+        pageInfo.innerText = totalRows > 0 ? `Showing ${start+1}-${end} of ${totalRows}` : "No records found";
+    }
+
+    headers.forEach((header, i) => {
+        header.addEventListener("click", () => {
+            sortColumnIndex = i;
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            rows.sort((a,b) => {
+                let aText = a.cells[i].innerText.trim();
+                let bText = b.cells[i].innerText.trim();
+                return sortDirection === 'asc' 
+                    ? aText.localeCompare(bText, undefined, {numeric:true})
+                    : bText.localeCompare(aText, undefined, {numeric:true});
+            });
+            rows.forEach(r => table.querySelector("tbody").appendChild(r));
+            renderTable();
+        });
+    });
+
+    searchInput.addEventListener("keyup", () => { currentPage=1; renderTable(); });
+    pageSizeSelect.addEventListener("change", () => { rowsPerPage = parseInt(pageSizeSelect.value); currentPage=1; renderTable(); });
+    prevPageBtn.addEventListener("click", () => { if(currentPage>1){ currentPage--; renderTable(); } });
+    nextPageBtn.addEventListener("click", () => { const totalPages = Math.ceil(rows.filter(r => r.innerText.toLowerCase().includes(searchInput.value.toLowerCase())).length / rowsPerPage); if(currentPage<totalPages){ currentPage++; renderTable(); } });
+
+    renderTable();
+
+    // Edit Modal
+    var editModal = document.getElementById("EditAYModal");
+    editModal.addEventListener("show.bs.modal", function(event) {
+        var button = event.relatedTarget;
+        var id = button.getAttribute("data-ay-id");
+        var name = button.getAttribute("data-ay-name");
+        document.getElementById("edit_ay_id").value = id;
+        document.getElementById("edit_ay_name").value = name;
+        document.getElementById("editAYForm").action = "{% url 'contact:academicyear_update' 0 %}".replace('/0/', '/' + id + '/');
+    });
+
+    // Delete Modal
+    var deleteModal = document.getElementById("DeleteAYModal");
+    deleteModal.addEventListener("show.bs.modal", function(event) {
+        var button = event.relatedTarget;
+        var id = button.getAttribute("data-ay-delete-id");
+        var name = button.getAttribute("data-ay-delete-name");
+        var url = button.getAttribute("data-url");
+        document.getElementById("DeleteAYModal_id").value = id;
+        document.getElementById("DeleteAYModal_hidden_name").value = name;
+        document.getElementById("DeleteAYModal_name").innerText = name;
+        document.getElementById("DeleteAYModal_form").action = url;
+    });
+
+    // Toast messages
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.map(toastEl => new bootstrap.Toast(toastEl).show());
+});
+</script>
+</body>
+</html>

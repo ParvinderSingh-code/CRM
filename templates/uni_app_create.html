@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Student</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+        <style>
+            .content-wrapper {
+                margin-left: 260px;
+                padding-top: 80px;
+                background-color: #f0f2f5;
+                min-height: 100vh;
+            }
+            .top-header {
+                position: fixed;
+                top: 0;
+                left: 260px;
+                right: 0;
+                z-index: 1020;
+                background: #fff;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+            }
+        </style>
+    </head>
+    <body class="bg-light">
+        {% include "student_header.html" %}
+        <div class="top-header" style="border-radius: 10px; margin:10px">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-start">
+                    <a class="navbar-brand text-dark me-4" href="{% url 'contact:university' %}">University</a>
+                    <a class="navbar-brand text-dark me-4" href="{% url 'contact:university-application' %}">University-Application</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="bg-white overflow-hidden rounded-lg p-0 mx-2">
+                <div class="p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="bg-warning text-white p-4 d-flex justify-content-between align-items-center rounded mb-4" style="--bs-bg-opacity: .9;">
+                            <h5 class="mb-0 fs-5">University-Application Form</h5>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class=" btn btn-success text-white">
+                                    <i class="bi bi-save me-1"></i> <span class="text-white" >Save</span>
+                                </button>
+                                <a href="{% url 'contact:university-application' %}" class="btn btn-light" data-bs-toggle="tooltip" title="Cancel and Close">
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Student Name -->
+                            <div class="col-6">
+                                <label for="student_name" class="form-label">Student Name</label>
+                                <select class="form-select" id="student_name" name="student_name">
+                                    <option value=""></option>
+                                    {% for student in students %}
+                                        <option value="{{ student.id }}" {% if university_application.student_id.id == student.id %}selected{% endif %}>
+                                            {{ student.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Student Status -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="student_status" class="form-label">Student Status</label>
+                                    <select class="form-select" id="student_status" name="student_status">
+                                        <option value=""></option>
+                                        {% for student_status in student_status_id %}
+                                            <option value="{{ student_status.id }}" {% if university_application.student_status_id.id == student_status.id %}selected{% endif %}>
+                                                {{ student_status.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Country Applied -->
+                            <div class="col-6">
+                                <label for="country_applied" class="form-label">Country Applied</label>
+                                <select class="form-select" id="country_applied" name="country_applied">
+                                    <option value=""></option>
+                                    {% for country in country_id %}
+                                        <option value="{{ country.id }}" {% if university_application.country_applied.id == country.id %}selected{% endif %}>
+                                            {{ country.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Payment Status -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="payment_status" class="form-label">Payment Status</label>
+                                    <select class="form-select" id="payment_status" name="payment_status">
+                                        <option value=""></option>
+                                        {% for payment_status in payment_status_id %}
+                                            <option value="{{ payment_status.id }}" {% if university_application.payment_status_id.id == payment_status.id %}selected{% endif %}>
+                                                {{ payment_status.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- University -->
+                            <div class="col-6">
+                                <label for="university" class="form-label">University</label>
+                                <select class="form-select" id="university" name="university">
+                                    <option value=""></option>
+                                    {% for univers in university_id %}
+                                        <option value="{{ univers.id }}" {% if university_application.university_id.id == univers.id %}selected{% endif %}>
+                                            {{ univers.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Interview Status -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="interview_status" class="form-label">Interview Status</label>
+                                    <select class="form-select" id="interview_status" name="interview_status">
+                                        <option value=""></option>
+                                        {% for interview_status in interview_status_id %}
+                                            <option value="{{ interview_status.id }}" {% if university_application.interview_status_id.id == interview_status.id %}selected{% endif %}>
+                                                {{ interview_status.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Course -->
+                            <div class="col-6">
+                                <label for="course" class="form-label">Course</label>
+                                <input type="text" name="course" id="course" class="form-control" value="{{ university_application.course|default:'' }}">
+                            </div>
+                            <!-- Agent -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="agents" class="form-label">Agent</label>
+                                    <select class="form-select" id="agents" name="agents">
+                                        <option value=""></option>
+                                        {% for agent in agents %}
+                                            <option value="{{ agent.id }}" {% if university_application.agent_id.id == agent.id %}selected{% endif %}>
+                                                {{ agent.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Course Type -->
+                            <div class="col-6">
+                                <label for="course_type" class="form-label">Course Type</label>
+                                <select name="course_type" id="course_type" class="form-control">
+                                    <option value=""></option>
+                                    <option value="ug" {% if university_application.course_type == "ug" %}selected{% endif %}>Under Graduate</option>
+                                    <option value="pg" {% if university_application.course_type == "pg" %}selected{% endif %}>Post Graduate</option>
+                                </select>
+                            </div>
+                            <!-- Applied ID -->
+                             <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="applied_id" class="form-label">Applied Through</label>
+                                    <select class="form-select" id="applied_id" name="applied_id">
+                                        <option value=""></option>
+                                        {% for applied in applied_id %}
+                                            <option value="{{ applied.id }}" {% if university_application.applied_to_id.id == applied.id %}selected{% endif %}>
+                                                {{ applied.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <div class="row">
+                            <!-- Intakes -->
+                            <div class="col-4">
+                                <label for="intakes" class="form-label">Intakes</label>
+                                <select name="intakes" id="intakes" class="form-control">
+                                    <option value=""></option>
+                                    {% for value,label in months %}
+                                        <option value="{{ value }}" {% if university_application.intakes == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Intake Year -->
+                            <div class="col-2">
+                                <label for="intake_year" class="form-label"></label>
+                                <input type="number" class="form-control mt-2" name="intake_year" id="intake_year" value="{{ university_application.intake_year|default:'' }}">
+                            </div>
+                            <!-- Application ID -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="application_id_char" class="form-label">Application ID</label>
+                                    <input type="text" name="application_id_char" id="application_id_char" class="form-control" value="{{ university_application.application|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Tuition Fees -->
+                            <div class="col-4">
+                                <label for="tution_fees" class="form-label">Tuition Fees</label>
+                                <input type="number" class="form-control" name="tution_fees" id="tution_fees" value="{{ university_application.tution_fees|default:'' }}">
+                            </div>
+                            <!-- Currency -->
+                            <div class="col-2">
+                                <label for="currency" class="form-label"></label>
+                                <select class="form-select mt-2" id="currency_id" name="currency_id">
+                                    <option value=""></option>
+                                    {% for currency in currencies %}
+                                        <option value="{{ currency.id }}" {% if university_application.currency_id.id == currency.id %}selected{% endif %}>
+                                            {{ currency.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="student_id_char" class="form-label">Student ID</label>
+                                    <input type="text" name="student_id_char" id="student_id_char" class="form-control" value="{{ university_application.student }}">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

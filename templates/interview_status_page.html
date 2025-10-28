@@ -1,0 +1,330 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Status</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<style>
+.content-wrapper {
+    margin-left: 260px;
+    padding-top: 80px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+}
+.top-header {
+    position: fixed;
+    top: 0;
+    left: 260px;
+    right: 0;
+    z-index: 1020;
+    background: #fff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+th.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 25px;
+}
+.sort-icon {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #999;
+    transition: color 0.2s;
+}
+.sortable.sorted-asc .sort-icon,
+.sortable.sorted-desc .sort-icon {
+    color: #333;
+}
+</style>
+</head>
+<body class="bg-light">
+{% include "student_header.html" %}
+
+<div class="top-header" style="border-radius: 10px; margin:10px">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-start">
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:visa'%}">Visa Type</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:academic'%}">Academic Qualification</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:studenstatus'%}">Student Status</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:interviewstatus'%}">Interview Status</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentstatus'%}">Payment Status</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentmethod'%}">Payment Method</a>
+            <a class="navbar-brand text-dark me-4" href="{% url 'contact:academicyear'%}">Academic Year</a>
+        </div>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div class="bg-white p-4 mx-2" style="border-radius: 10px;">
+        <div class="d-flex align-items-center mb-4 gap-2">
+            <button type="button" class="btn btn-warning"
+                style="padding:5px 15px; border-radius: 5px; color:white; text-decoration: none;"
+                data-bs-toggle="modal" data-bs-target="#interviewstatusModal">
+                New
+            </button>
+            <b>{{ page_title }}</b>
+        </div>
+
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+            {% for message in messages %}
+            <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                data-bs-delay="5000" data-bs-autohide="true"> 
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <main>
+            <div class="bg-white overflow-hidden border border-gray-100 rounded-lg">
+                <div class="d-flex justify-content-between align-items-center p-3">
+                    <div class="d-flex align-items-center">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search Interview Status..." style="width: 250px;">
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label for="pageSize" class="me-2 mb-0">Show</label>
+                        <select id="pageSize" class="form-select w-auto" style="min-width: 80px;">
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                        <span class="ms-2">entries</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto m-2">
+                    <table class="table table-hover" id="interviewTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="sortable text-start" data-column-index="0"># <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th class="sortable text-start" data-column-index="1">Name <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th class="sortable text-start" data-column-index="2">Complete Status <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in interview_status %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <a href="#" class="open-edit-modal" style="color:black; text-decoration:none;"
+                                       data-bs-toggle="modal" data-bs-target="#EditISModal"
+                                       data-is-id="{{ interview.id }}"
+                                       data-is-name="{{ interview.name }}"
+                                       data-is-complete="{{ interview.is_completed }}">
+                                       {{ interview.name }}
+                                    </a>
+                                </td>
+                                <td>{{ interview.is_completed }}</td>
+                                <td style="text-align:end;">
+                                    <a href="#" class="open-delete-modal" style="color:red; text-decoration:none;"
+                                       data-bs-toggle="modal" data-bs-target="#DeleteISModal"
+                                       data-delete-id="{{ interview.id }}"
+                                       data-delete-name="{{ interview.name }}"
+                                       data-url="{% url 'contact:interviewstatus_delete' interview.id %}">
+                                       <i class="bi bi-trash3 text-danger"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="empty-row">
+                                <td colspan="4" class="text-center py-16 text-gray-500">
+                                    <h5>No Interview Status found</h5>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between m-3">
+                    <button class="btn btn-sm btn-outline-secondary" id="prevPage">Previous</button>
+                    <span id="pageInfo" class="align-self-center"></span>
+                    <button class="btn btn-sm btn-outline-secondary" id="nextPage">Next</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="interviewstatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title">Create New Record</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="{% url 'contact:interviewstatus_create' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="interview_status_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Complete</label>
+                <input type="checkbox" name="interview_status_complete">
+            </div>
+            <button type="submit" class="btn btn-warning text-white">Save</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="EditISModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+            <h5 class="modal-title">Edit Record</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" id="editISForm">
+            {% csrf_token %}
+            <input type="hidden" id="edit_is_id" name="id">
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" id="edit_is_name" name="edit_is_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Complete</label>
+                <input type="checkbox" id="edit_is_status" name="edit_is_status">
+            </div>
+            <button type="submit" class="btn btn-warning text-white">Update</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+{% include "delete_modal.html" with modal_id="DeleteISModal" %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Toast messages
+    document.querySelectorAll('.toast').forEach(el => new bootstrap.Toast(el).show());
+
+    // Edit modal
+    var editModal = document.getElementById("EditISModal");
+    editModal.addEventListener("show.bs.modal", function(event) {
+        var btn = event.relatedTarget;
+        document.getElementById("edit_is_id").value = btn.getAttribute("data-is-id");
+        document.getElementById("edit_is_name").value = btn.getAttribute("data-is-name");
+        document.getElementById("edit_is_status").checked = btn.getAttribute("data-is-complete")=="True";
+        document.getElementById("editISForm").action = "{% url 'contact:interviewstatus_update' 0 %}".replace('/0/', '/' + btn.getAttribute("data-is-id") + '/');
+    });
+
+    // Delete modal
+    var deleteModal = document.getElementById("DeleteISModal");
+    deleteModal.addEventListener("show.bs.modal", function(event) {
+        var btn = event.relatedTarget;
+        document.getElementById("DeleteISModal_id").value = btn.getAttribute("data-delete-id");
+        document.getElementById("DeleteISModal_hidden_name").value = btn.getAttribute("data-delete-name");
+        document.getElementById("DeleteISModal_name").innerText = btn.getAttribute("data-delete-name");
+        document.getElementById("DeleteISModal_form").action = btn.getAttribute("data-url");
+    });
+
+    // Table sorting, searching, pagination
+    const table = document.getElementById("interviewTable");
+    const searchInput = document.getElementById("searchInput");
+    const headers = table.querySelectorAll("th.sortable");
+    const pageSizeSelect = document.getElementById("pageSize");
+    const prevPageBtn = document.getElementById("prevPage");
+    const nextPageBtn = document.getElementById("nextPage");
+    const pageInfo = document.getElementById("pageInfo");
+
+    let currentPage = 1;
+    let rowsPerPage = parseInt(pageSizeSelect.value);
+    let sortColumnIndex = -1;
+    let sortDirection = 'asc';
+
+    function getDataRows() {
+        // Exclude empty row
+        return Array.from(table.querySelectorAll("tbody tr")).filter(r => !r.classList.contains('empty-row'));
+    }
+
+    function renderTable() {
+        let rows = getDataRows();
+        let filteredRows = rows.filter(r => r.innerText.toLowerCase().includes(searchInput.value.toLowerCase()));
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage-1)*rowsPerPage;
+        const end = Math.min(start+rowsPerPage,totalRows);
+
+        rows.forEach(r=>r.style.display="none");
+        filteredRows.slice(start,end).forEach(r=>r.style.display="");
+
+        // Show empty row if no data
+        let emptyRow = table.querySelector("tbody .empty-row");
+        if(emptyRow) emptyRow.style.display = filteredRows.length===0 ? "" : "none";
+
+        pageInfo.innerText = totalRows > 0 ? `Showing ${start+1}-${end} of ${totalRows}` : "No records found";
+        prevPageBtn.disabled = currentPage===1;
+        nextPageBtn.disabled = currentPage===totalPages || totalRows===0;
+    }
+
+    headers.forEach(header => {
+        header.addEventListener("click", () => {
+            const col = parseInt(header.getAttribute('data-column-index'));
+            sortDirection = (sortColumnIndex===col && sortDirection==='asc') ? 'desc':'asc';
+            sortColumnIndex = col;
+
+            let rows = getDataRows();
+            rows.sort((a,b)=>{
+                let aCell = a.cells[col] ? a.cells[col].innerText.trim() : '';
+                let bCell = b.cells[col] ? b.cells[col].innerText.trim() : '';
+                return sortDirection==='asc'
+                    ? aCell.localeCompare(bCell, undefined, { numeric:true })
+                    : bCell.localeCompare(aCell, undefined, { numeric:true });
+            });
+
+            // Append sorted rows back to tbody
+            const tbody = table.querySelector("tbody");
+            rows.forEach(r=>tbody.appendChild(r));
+
+            headers.forEach(h=>{
+                h.classList.remove('sorted-asc','sorted-desc');
+                h.querySelector('.sort-icon').classList.remove('bi-sort-up','bi-sort-down');
+                h.querySelector('.sort-icon').classList.add('bi-sort-down-alt');
+            });
+            header.classList.add(`sorted-${sortDirection}`);
+            header.querySelector('.sort-icon').classList.remove('bi-sort-down-alt');
+            header.querySelector('.sort-icon').classList.add(sortDirection==='asc'?'bi-sort-up':'bi-sort-down');
+
+            currentPage=1;
+            renderTable();
+        });
+    });
+
+    searchInput.addEventListener("keyup",()=>{currentPage=1; renderTable();});
+    pageSizeSelect.addEventListener("change",()=>{rowsPerPage=parseInt(pageSizeSelect.value); currentPage=1; renderTable();});
+    prevPageBtn.addEventListener("click",()=>{if(currentPage>1)currentPage--; renderTable();});
+    nextPageBtn.addEventListener("click",()=>{currentPage++; renderTable();});
+
+    renderTable();
+});
+</script>
+</body>
+</html>

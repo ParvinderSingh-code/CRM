@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Applied</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+        <style>
+            /* CSS to ensure content doesn't go behind fixed elements */
+            .content-wrapper {
+                margin-left: 260px; /* Space for the sidebar */
+                padding-top: 80px; /* Space for the top header */
+                background-color: #f0f2f5; /* Light gray background for main content area */
+                min-height: 100vh;
+            }
+
+            .top-header {
+                position: fixed;
+                top: 0;
+                left: 260px; /* Aligns to the right of the sidebar */
+                right: 0;
+                z-index: 1020; /* Above the sidebar */
+                background: #fff;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+            }
+        </style>
+    </head>
+    <body class="bg-light">
+
+        {% include "student_header.html" %}
+
+        <div class="top-header" style="border-radius: 10px; margin:10px">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-start">
+                    <a class="navbar-brand text-dark me-4" href="{% url 'contact:student' %}">Student</a>
+                    <a class="navbar-brand text-dark me-4" href="{% url 'contact:applied' %}">Applied</a>
+                    <a class="navbar-brand text-dark me-4" href="{% url 'contact:agent' %}">Agent</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-wrapper">
+            <div class="bg-white p-4 mx-2" style="border-radius: 10px;">
+                <div class="d-flex align-items-center mb-4 gap-2">
+                    <a href="{% url 'contact:applied_create' %}" class="btn btn-warning" 
+                        style="padding:5px 15px; border-radius: 5px; color:white; text-decoration: none;">
+                        New 
+                    </a>
+                    <b>{{ page_title }}</b>
+                </div>
+
+                <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                    {% for message in messages %}
+                    <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                        data-bs-delay="5000" data-bs-autohide="true"> 
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                {{ message }}
+                            </div>
+                            <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <main>
+                    <div class="bg-white overflow-hidden border border-gray-100 rounded-lg">
+                        <div class="overflow-x-auto m-2">
+                            {% block content %}
+                                {% include "list_table.html" with headers=header rows=applied_rows %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        {% include "delete_modal.html" with modal_id="deleteappliedmodal" %}
+
+        <script>
+            // Delete Functionality
+            document.addEventListener("DOMContentLoaded", function () {
+                var deleteModal = document.getElementById("deleteappliedmodal");
+
+                if (deleteModal) {
+                    deleteModal.addEventListener("show.bs.modal", function (event) {
+                        var button = event.relatedTarget;
+                        var id = button.getAttribute("data-delete-id");
+                        var name = button.getAttribute("data-delete-name");
+                        var url = button.getAttribute("data-url");
+
+                        document.getElementById("deleteappliedmodal_id").value = id;
+                        document.getElementById("deleteappliedmodal_hidden_name").value = name;
+                        document.getElementById("deleteappliedmodal_name").innerText = name;
+
+                        document.getElementById("deleteappliedmodal_form").action = url;
+                    });
+                }
+            });
+            // Animation on messages  
+            document.addEventListener("DOMContentLoaded", function() {
+                var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+                var toastList = toastElList.map(function (toastEl) {
+                    return new bootstrap.Toast(toastEl)
+                })
+                toastList.forEach(toast => toast.show())  // Show toasts programmatically
+            });     
+            
+        </script>
+        
+
+    </body>
+</html>

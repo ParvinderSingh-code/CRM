@@ -1,0 +1,379 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+        /* CSS to ensure content doesn't go behind fixed elements */
+        .content-wrapper {
+            margin-left: 260px; /* Space for the sidebar */
+            padding-top: 80px; /* Space for the top header */
+            background-color: #f0f2f5; /* Light gray background for main content area */
+            min-height: 100vh;
+        }
+
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 260px; /* Aligns to the right of the sidebar */
+            right: 0;
+            z-index: 1020; /* Above the sidebar */
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        /* ... existing styles ... */
+th.sortable {
+    cursor: pointer;
+    position: relative; /* Needed for absolute positioning of icons */
+    padding-right: 25px; /* Add space for the icon */
+}
+
+.sort-icon {
+    position: absolute;
+    right: 5px; /* Position the icon inside the padding */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem; /* Smaller icon size */
+    color: #999; /* Neutral color for initial state */
+    transition: color 0.2s;
+}
+
+/* Hide the placeholder span, as we will use a single bi-sort-down-alt for initial state */
+.sort-icon-placeholder {
+    display: none !important;
+}
+
+/* Style for non-sorted headers */
+.sortable .bi-sort-down-alt {
+    color: #999;
+}
+
+/* Style for sorted headers */
+.sortable.sorted-asc .sort-icon {
+    content: "\F47C"; /* bi-sort-up */
+    color: #333; /* Darker color when active */
+}
+
+.sortable.sorted-desc .sort-icon {
+    content: "\F47B"; /* bi-sort-down */
+    color: #333; /* Darker color when active */
+}
+
+    </style>
+</head>
+<body class="bg-light">
+    {% include "student_header.html"%}
+
+    <div class="top-header" style="border-radius: 10px; margin:10px">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-start">
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:visa'%}">Visa Type</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:academic'%}">Academic Qualification</a></li>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:studenstatus'%}">Student Status</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:interviewstatus'%}">Interview Status</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentstatus'%}">Payment Status</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:paymentmethod'%}">Payment Method</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:academicyear'%}">Academic Year</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="bg-white p-4 mx-2" style="border-radius: 10px;">
+            <div class="d-flex align-items-center mb-4 gap-2">
+                <button type="button" class="btn btn-warning"
+                    style="padding:5px 15px; border-radius: 5px; color:white; text-decoration: none;"
+                    data-bs-toggle="modal" data-bs-target="#studentstatusModal">
+                    New
+                </button>
+                <b>{{ page_title }}</b>
+            </div>
+
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                {% for message in messages %}
+                <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                    data-bs-delay="5000" data-bs-autohide="true"> 
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+    
+            <main>
+                <div class="bg-white overflow-hidden border border-gray-100 rounded-lg">
+                    <div class="d-flex justify-content-between align-items-center p-3">
+                        <div class="d-flex align-items-center">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search Student Status..." style="width: 250px;">
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <label for="pageSize" class="me-2 mb-0">Show</label>
+                            <select id="pageSize" class="form-select w-auto" style="min-width: 80px;">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                            <span class="ms-2">entries</span> </div>
+                    </div>
+                    <div class="overflow-x-auto m-2">
+                        <table class="table table-hover" id="studentTable">
+                            <thead class="bg-light">
+                                <tr class="table-light">
+                                    <th class="sortable text-start" data-column-index="0"># <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                    <th class="sortable text-start" data-column-index="1">Name <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                    <th class="sortable text-start" data-column-index="2">Complete Status <span class="sort-icon bi bi-sort-down-alt"></span></th>
+                                    <th></th>                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in student_status_name %}
+                                <tr>
+                                    
+                                    <td class="">
+                                        {{ forloop.counter }}
+                                    </td>
+                                    <td class="">
+                                        <a href="#" style="color:black; text-decoration:none;" class="open-edit-modal" 
+                                        data-bs-toggle="modal" data-bs-target="#EditSSModal" data-ss-id="{{ student.id }}" 
+                                        data-ss-name="{{ student.name }}" data-ss-complete="{{ student.is_completed }}">
+                                            {{ student.name }}
+                                        </a>
+                                    </td>
+                                    <td class="">
+                                        {{ student.is_completed }}
+                                    </td>
+                                    <td class="" style="text-align: end;">
+                                        <a href="#"style="color:red; text-decoration:none;" class="open-edit-modal" 
+                                            data-bs-toggle="modal" data-bs-target="#DeleteSSModal" data-delete-id="{{ student.id }}" 
+                                            data-delete-name="{{ student.name }}"  data-url="{% url 'contact:studentstatus_delete' student.id %}">
+                                            <i class="bi bi-trash3 text-danger"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="px-6 py-16 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                            </svg>
+                                            <h5 class="text-lg font-semibold">No Student Status records found</h5>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="studentstatusModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header bg-warning" style="color:white;">
+                <h5 class="modal-title" id="newModalLabel">Create New Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'contact:studentstatus_create' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="student_status_name" name="student_status_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="complete" class="form-label">complete</label>
+                    <input type="checkbox" id="student_status_complete" name="student_status_complete">
+                </div>
+                
+                <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit of Student Status Table -->
+    <div class="modal fade" id="EditSSModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header bg-warning" style="color:white;">
+                <h5 class="modal-title" id="editModalLabel">Edit Record</h5>
+                <button type="button" class="btn-close btn-close-white btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="editssForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_ss_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_ss_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="edit_ss_name" name="edit_ss_name" required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="complete" class="form-label">Complete</label>
+                    <input type="checkbox" id="edit_ss_status" name="edit_ss_status">
+                </div>
+                    <button type="submit" class="btn btn-warning"><span class="text-white">Update</span></button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Of Student Status Table -->
+    {% include "delete_modal.html" with modal_id="DeleteSSModal" %}
+
+    <script>
+        // EDIT Functionality
+        document.addEventListener("DOMContentLoaded", function () {
+            var editModal = document.getElementById("EditSSModal");
+
+            editModal.addEventListener("show.bs.modal", function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var id = button.getAttribute("data-ss-id");
+                var name = button.getAttribute("data-ss-name");
+                var status = button.getAttribute("data-ss-complete");
+
+                document.getElementById("edit_ss_id").value = id;
+                document.getElementById("edit_ss_name").value = name;
+                document.getElementById("edit_ss_status").checked = (status === "True" || status === "true" || status === "1");
+
+                document.getElementById("editssForm").action = "{% url 'contact:studentstatus_update' 0 %}".replace('/0/', '/' + id + '/');
+            });
+        });
+        // Delete Functionality
+        document.addEventListener("DOMContentLoaded", function () {
+            var deleteModal = document.getElementById("DeleteSSModal");
+
+            if (deleteModal) {
+                deleteModal.addEventListener("show.bs.modal", function (event) {
+                    var button = event.relatedTarget;
+                    var id = button.getAttribute("data-delete-id");
+                    var name = button.getAttribute("data-delete-name");
+                    var url = button.getAttribute("data-url");
+
+                    document.getElementById("DeleteSSModal_id").value = id;
+                    document.getElementById("DeleteSSModal_hidden_name").value = name;
+                    document.getElementById("DeleteSSModal_name").innerText = name;
+
+                    document.getElementById("DeleteSSModal_form").action = url;
+                });
+            }
+        });
+        // Animation on messages 
+        document.addEventListener("DOMContentLoaded", function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl)
+            })
+            toastList.forEach(toast => toast.show())  // Show toasts programmatically
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const table = document.getElementById("studentTable");
+            // Initialize rows only once from the table body
+            let rows = Array.from(table.querySelectorAll("tbody tr")); 
+            const searchInput = document.getElementById("searchInput");
+            const headers = table.querySelectorAll("th.sortable");
+            const pageSizeSelect = document.getElementById("pageSize");
+            const prevPageBtn = document.getElementById("prevPage");
+            const nextPageBtn = document.getElementById("nextPage");
+            const pageInfo = document.getElementById("pageInfo");
+
+            let currentPage = 1;
+            let rowsPerPage = parseInt(pageSizeSelect.value);
+            let sortColumnIndex = -1;
+            let sortDirection = 'asc';
+
+            function renderTable() {
+                let filteredRows = rows.filter(r =>
+                    r.innerText.toLowerCase().includes(searchInput.value.toLowerCase())
+                );
+                const totalRows = filteredRows.length;
+                const totalPages = Math.ceil(totalRows / rowsPerPage);
+                if (currentPage > totalPages) currentPage = totalPages || 1;
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = Math.min(start + rowsPerPage, totalRows);
+                
+                // Hide all rows initially
+                rows.forEach(r => r.style.display = "none");
+                
+                // Show only the paginated, filtered rows
+                filteredRows.slice(start, end).forEach(r => r.style.display = "");
+                
+                // Re-append to ensure the sorted order is in the DOM
+                table.querySelector("tbody").append(...rows); 
+
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+                pageInfo.innerText = totalRows > 0 ? `Showing ${start+1}-${end} of ${totalRows}` : "No records found";
+            }
+
+            // --- FIX: Sorting Logic Update ---
+            headers.forEach((header) => {
+                header.addEventListener("click", () => {
+                    const columnIndex = parseInt(header.getAttribute('data-column-index'));
+
+                    if (sortColumnIndex === columnIndex) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortColumnIndex = columnIndex;
+                        sortDirection = 'asc';
+                    }
+
+                    rows.sort((a, b) => {
+                        let aText = a.cells[columnIndex].innerText.trim();
+                        let bText = b.cells[columnIndex].innerText.trim();
+                        
+                        // Use localeCompare with numeric option for better sorting
+                        return sortDirection === 'asc' ? aText.localeCompare(bText, undefined, { numeric: true }) : bText.localeCompare(aText, undefined, { numeric: true });
+                    });
+                    
+                    // Reset all header classes and icons
+                    headers.forEach(h => {
+                        h.classList.remove('sorted-asc', 'sorted-desc');
+                        h.querySelector('.sort-icon').classList.remove('bi-sort-up', 'bi-sort-down');
+                        h.querySelector('.sort-icon').classList.add('bi-sort-down-alt'); // Neutral icon
+                    });
+                    
+                    // Apply active sort class and icon
+                    header.classList.add(`sorted-${sortDirection}`);
+                    header.querySelector('.sort-icon').classList.remove('bi-sort-down-alt');
+                    header.querySelector('.sort-icon').classList.add(sortDirection === 'asc' ? 'bi-sort-up' : 'bi-sort-down');
+                    
+                    currentPage = 1;
+                    renderTable();
+                });
+            });
+
+            // Initial render and event listeners
+            searchInput.addEventListener("keyup", () => { currentPage=1; renderTable(); });
+            pageSizeSelect.addEventListener("change", () => { rowsPerPage = parseInt(pageSizeSelect.value); currentPage=1; renderTable(); });
+            prevPageBtn.addEventListener("click", () => { if(currentPage>1) currentPage--; renderTable(); });
+            nextPageBtn.addEventListener("click", () => { currentPage++; renderTable(); });
+
+            renderTable();
+        });
+    </script>
+
+</body>

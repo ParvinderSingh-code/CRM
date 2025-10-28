@@ -1,0 +1,273 @@
+<style>
+#searchInput:focus {
+    outline: none; /* remove default blue outline */
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.5); /* warning color shadow */
+    border-color: #ffc107; /* warning border */
+}
+.sortable .sort-icon-placeholder {
+    margin-left: 5px;
+    font-size: 0.8em; /* Slightly smaller icon */
+    opacity: 0.3; /* Default opacity for unsorted columns */
+}
+
+/* Style for the currently sorted column's icon */
+.sortable.sorted-asc .sort-icon-placeholder,
+.sortable.sorted-desc .sort-icon-placeholder {
+    opacity: 1; /* Full opacity for sorted column */
+}
+</style>
+
+<div class="table-container">
+    <!-- 🔍 Search Bar -->
+    <div class="mb-3 d-flex justify-content-between">
+        <input type="text" id="searchInput" class="form-control w-25" placeholder="Search...">
+        <div>
+            <label for="pageSize" class="me-2">Show</label>
+            <select id="pageSize" class="form-select d-inline-block w-auto">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+
+    
+
+    <!-- Table -->
+    <table class="table table-hover" id="reusableTable">
+        <thead>
+            <tr>
+                {% for header in headers %}
+                    <th class="sortable" data-index="{{ forloop.counter0 }}">
+                        {{ header }}
+                        <span class="sort-icon-placeholder"></span>
+                    </th>
+                {% endfor %}
+                {% if headers %}
+                <th></th> 
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr data-id="{{ row.id }}" 
+                    {% if row.edit_url %}data-edit-url="{{ row.edit_url }}"{% endif %}
+                    {% if row.edit_modal_id %}data-edit-modal="{{ row.edit_modal_id }}"{% endif %} 
+                    data-delete-url="{{ row.delete_url }}">
+                    {% for field in row.fields %}
+                        <td class="click-to-edit">{{ field }}</td>
+                    {% endfor %}
+                    {% if row %}
+                    <td style="text-align: end;">
+                        
+                        <a href="#" class="text-danger delete-link"><i class="bi bi-trash3 text-danger"></i></a>
+                    </td>
+                    {% endif%}
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{{ headers|length }}" class="text-center text-muted">
+                        No records found
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="d-flex justify-content-between mt-3">
+        <button class="btn btn-sm btn-outline-secondary" id="prevPage">Previous</button>
+        <span id="pageInfo"></span>
+        <button class="btn btn-sm btn-outline-secondary" id="nextPage">Next</button>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" id="deleteForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this record?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- JavaScript for Search, Sorting, Pagination -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const table = document.getElementById("reusableTable");
+    let rows = Array.from(table.querySelectorAll("tbody tr")); // rows must be 'let' to be reassigned
+    const searchInput = document.getElementById("searchInput");
+    const headers = table.querySelectorAll("th.sortable");
+    const pageSizeSelect = document.getElementById("pageSize");
+    const prevPageBtn = document.getElementById("prevPage");
+    const nextPageBtn = document.getElementById("nextPage");
+
+    let currentPage = 1;
+    let rowsPerPage = parseInt(pageSizeSelect.value);
+    let sortColumnIndex = -1;
+    let sortDirection = 'asc'; 
+
+    let deleteRow = null;
+    const deleteModalEl = document.getElementById('deleteModal');
+    const deleteModal = new bootstrap.Modal(deleteModalEl);
+    const deleteForm = document.getElementById('deleteForm');
+
+    // Edit JS
+    table.querySelectorAll("td.click-to-edit").forEach(td => {
+        td.style.cursor = "pointer"; // nice hover effect
+        td.addEventListener("click", function (e) {
+            const row = td.parentElement;
+            const editUrl = row.dataset.editUrl;
+            
+            if (editUrl) {
+                window.location.href = editUrl; // redirect to edit page
+            }
+        });
+    });
+// Delete
+    document.querySelectorAll(".delete-link").forEach(link => {
+        link.addEventListener("click", function (e) {
+            e.preventDefault();
+            deleteRow = link.closest("tr");
+            if (deleteRow) {
+                const deleteUrl = deleteRow.dataset.deleteUrl;
+                deleteForm.action = deleteUrl;  // set the form action dynamically
+            }
+            deleteModal.show();
+        });
+    });
+
+
+    function renderTable() {
+        // ... (existing renderTable logic for filtering and pagination) ...
+        let filteredRows = rows.filter(r =>
+            r.innerText.toLowerCase().includes(searchInput.value.toLowerCase())
+        );
+
+        let totalRows = filteredRows.length;
+        let totalPages = Math.ceil(totalRows / rowsPerPage);
+        
+        // Disable pagination buttons
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = Math.min(start + rowsPerPage, totalRows);
+
+        // Hide all rows, then show only the ones for the current page
+        table.querySelectorAll("tbody tr").forEach(r => r.style.display = "none");
+        filteredRows.slice(start, end).forEach(r => r.style.display = "");
+
+        document.getElementById("pageInfo").innerText =
+            totalRows > 0
+                ? `Showing ${start + 1}-${end} of ${totalRows} records`
+                : "No records found";
+    }
+
+    // Sorting Logic with Icon Updates
+    headers.forEach((header, index) => {
+        const iconPlaceholder = header.querySelector('.sort-icon-placeholder');
+        
+        // Initial icon setup
+        if (iconPlaceholder) {
+             // Use a default icon from Bootstrap Icons
+            iconPlaceholder.innerHTML = '<i class="bi bi-caret-up-fill"></i><i class="bi bi-caret-down-fill"></i>';
+            iconPlaceholder.style.opacity = '0.3'; // Initially dim
+        }
+
+        header.addEventListener("click", () => {
+            let newDirection = 'asc';
+            
+            // Determine if the same column was clicked
+            if (index === sortColumnIndex) {
+                // Toggle direction
+                newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            }
+            
+            sortColumnIndex = index;
+            sortDirection = newDirection;
+
+            // Sorting function
+            rows.sort((a, b) => {
+                let aText = a.cells[index].innerText;
+                let bText = b.cells[index].innerText;
+                
+                let comparison = aText.localeCompare(bText, undefined, {numeric: true});
+                
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
+
+            // Update icon on all headers
+            headers.forEach(h => {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+                h.querySelector('.sort-icon-placeholder').innerHTML = '<i class="bi bi-caret-up-fill"></i><i class="bi bi-caret-down-fill"></i>';
+                h.querySelector('.sort-icon-placeholder').style.opacity = '0.3';
+            });
+            
+            // Update icon for the sorted column
+            header.classList.add(`sorted-${sortDirection}`);
+            
+            // Only show the active sort icon
+            if (sortDirection === 'asc') {
+                iconPlaceholder.innerHTML = '<i class="bi bi-caret-up-fill"></i>';
+            } else {
+                iconPlaceholder.innerHTML = '<i class="bi bi-caret-down-fill"></i>';
+            }
+            iconPlaceholder.style.opacity = '1';
+
+            // Re-render the table
+            table.querySelector("tbody").append(...rows); // Re-order the underlying table structure
+            currentPage = 1;
+            renderTable();
+        });
+    });
+    
+    // ... (rest of the existing script for Search, Page size, Pagination buttons) ...
+
+    // Search
+    searchInput.addEventListener("keyup", function () {
+        currentPage = 1; // reset to page 1 on search
+        renderTable();
+    });
+
+    // Page size selector
+    pageSizeSelect.addEventListener("change", function () {
+        rowsPerPage = parseInt(this.value);
+        currentPage = 1; // reset to first page
+        renderTable();
+    });
+
+    // Pagination buttons
+    prevPageBtn.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    });
+
+    nextPageBtn.addEventListener("click", () => {
+        currentPage++;
+        renderTable();
+    });
+    
+    // Call renderTable initially
+    renderTable();
+});
+
+</script>

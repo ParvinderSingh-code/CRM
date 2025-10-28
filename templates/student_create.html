@@ -1,0 +1,1430 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* CSS to ensure content doesn't go behind fixed elements */
+        .content-wrapper {
+            margin-left: 260px; /* Space for the sidebar */
+            padding-top: 80px; /* Space for the top header */
+            background-color: #f0f2f5; /* Light gray background for main content area */
+            min-height: 100vh;
+        }
+
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 260px; /* Aligns to the right of the sidebar */
+            right: 0;
+            z-index: 1020; /* Above the sidebar */
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .tab-content > .tab-pane {
+            display: none;
+        }
+
+        .tab-content > .active {
+            display: block;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #ffc107 !important;
+            color: white !important;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+
+        .nav-tabs .nav-link {
+            border: 1px solid #dee2e6 !important;
+            }
+    </style>
+</head>
+<body class="bg-light">
+
+    {% include "student_header.html" %}
+
+    <div class="top-header" style="border-radius: 10px; margin:10px">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-start">
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:student' %}">Student</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:applied' %}">Applied</a>
+                <a class="navbar-brand text-dark me-4" href="{% url 'contact:agent' %}">Agent</a>
+            </div>
+        </div>
+    </div>
+    <div class="content-wrapper">
+        <div class="bg-white overflow-hidden rounded-lg p-0 mx-2">
+            <div class="p-4">
+                <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                    {% for message in messages %}
+                    <div class="toast align-items-center text-bg-{{message.tags}} border-0" role="alert"
+                        data-bs-delay="5000" data-bs-autohide="true"> 
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                {{ message }}
+                            </div>
+                            <button type="button" class="btn-close btn-close-black me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="bg-warning text-black p-4 d-flex justify-content-between align-items-center rounded mb-4" style="--bs-bg-opacity: .9;">
+                        <h5 class="mb-0 fs-5">Student Information Form</h5>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success text-white">
+                                <i class="bi bi-save me-1"></i> <span class="text-white">Save</span>
+                            </button>
+                            <a href="{% url 'contact:student' %}" class="btn btn-light" data-bs-toggle="tooltip" data-bs-placement="top" title="Cancel and Close">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Student Name</label>
+                                <input type="text" class="form-control" id="student_name" name="student_name" required value="{{student.name}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="student_street" name="student_street" placeholder="Street" value="{{student.street}}">
+                                <input type="text" class="form-control mt-2" id="student_street2" name="student_street2" placeholder="Street 2" value="{{student.street2}}">
+                                <div class="row mt-2">
+                                    <div class="col-4">
+                                        <input type="text" class="form-control" id="student_city" name="student_city" placeholder="City" value="{{student.city}}">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control" id="student_zip" name="student_zip" placeholder="Pin Code" value="{{student.zip}}">
+                                    </div>
+                                    <div class="col-4">
+                                        <select class="form-select" id="student_state" name="student_state">
+                                            <option value=""></option>
+                                            {% for stat in state %}
+                                                <option value="{{ stat.id }}" {% if student.state_id and student.state_id.id == stat.id %}selected{% endif %}>
+                                                    {{ stat.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="passport" class="form-label">Passport Number</label>
+                                <input type="text" class="form-control" id="student_passport" name="student_passport" value="{{student.passport_number}}">
+                                <small id="passport_feedback" class="text-danger"></small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nationality" class="form-label">Nationality</label>
+                                <select class="form-select" id="student_nationality" name="student_nationality">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.id }}" {% if student.nationality and student.nationality.id == country.id %}selected{% endif %}>
+                                            {{ country.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Mobile</label>
+                                <input type="number" class="form-control" id="student_phone" name="student_phone"  value="{{student.phone}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="student_email" name="student_email"  value="{{student.email}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="date_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="student_dob" name="student_dob"  value="{{student.dob|date:'Y-m-d'}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="gender" class="form-label">Gender</label><br>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="male" name="gender" value="Male" {% if student.gender == 'Male' %}checked{% endif %}>
+                                        <label class="form-check-label" for="male">Male</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="female" name="gender" value="Female" {% if student.gender == 'Female' %}checked{% endif %}>
+                                        <label class="form-check-label" for="female">Female</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="other" name="gender" value="Other" {% if student.gender == 'Other' %}checked{% endif %}>
+                                        <label class="form-check-label" for="other">Other</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if student.id %}
+                        <hr class="mb-2">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Contact</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Travel History</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Refusals</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="work-exp-tab" data-bs-toggle="tab" data-bs-target="#work-exp-tab-pane" type="button" role="tab" aria-controls="work-exp-tab" aria-selected="false">Work Experience</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="academic_details-tab" data-bs-toggle="tab" data-bs-target="#academic_details-tab-pane" type="button" role="tab" aria-controls="academic_details-tab" aria-selected="false">Academic Details</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-doc-tab" data-bs-toggle="tab" data-bs-target="#upload-doc-tab-pane" type="button" role="tab" aria-controls="upload-doc-tab" aria-selected="false">Upload Doc</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment-tab-pane" type="button" role="tab" aria-controls="payment-tab" aria-selected="false">Payment</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <!-- Contact part -->
+                            <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createchildcontact" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover border mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Name</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">State</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Nationality</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Email</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for child in children  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ child.name }}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ child.state_id }}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ child.nationality }}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ child.email }}</td>
+                                            <td class="" style="text-align: end;">
+                                                <a href="#"style="color:red; text-decoration:none;" class="open-edit-modal" 
+                                                    data-bs-toggle="modal" data-bs-target="#DeletecontactModal" data-delete-id="{{ child.id }}" 
+                                                    data-delete-name="{{ child.name }}" data-url="{% url 'contact:contact_delete' child.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Child records found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Travel History -->
+                            <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createtravelhistory" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover border mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Country</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">From</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">To</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Visa Type</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Purpose</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for trav in travel %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#" style="color:black; text-decoration:none;" class="open-edit-trav-modal" 
+                                                    data-bs-toggle="modal" data-bs-target="#EditISModal" data-trav-id="{{ trav.id }}" 
+                                                    data-trav-country="{{ trav.country_id.id }}" data-trav-date-from="{{ trav.date_from|date:'Y-m-d' }}"
+                                                    data-trav-date-to="{{ trav.date_to|date:'Y-m-d' }}" data-trav-visa="{{ trav.visa_type.id }}"
+                                                        data-trav-purpose="{{trav.purpose}}" data-trav-student="{{trav.student_id.id}}">
+                                                        {{ trav.country_id }}
+                                                </a>                                                           
+                                            </td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{trav.date_from}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{trav.date_to}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{trav.visa_type}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{trav.purpose}}</td>
+                                            <td>
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#Deletetravelhistory" data-delete-id="{{ trav.id }}" 
+                                                    data-delete-name="{{ trav.name }}" data-url="{% url 'contact:travel_delete' trav.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Travel History found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Refusal Part -->
+                            <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createrefusal" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover border mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Country</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Date of Refusals</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Refusal Reason</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Visa Type</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for refusal in refusals  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#" class="open-edit-refusal-modal" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#EditrefusalModal" 
+                                                    data-refusal-id="{{ refusal.id }}" 
+                                                    data-refusal-country="{{ refusal.country_id.id }}" 
+                                                    data-refusal-date="{{ refusal.date_refusal|date:'Y-m-d' }}"
+                                                    data-refusal-visa="{% if refusal.visa_type %}{{ refusal.visa_type.id }}{% else %}{% endif %}"
+                                                    data-refusal-reason="{{ refusal.reason }}"
+                                                    data-refusal-student="{{ refusal.student_id.id }}"
+                                                    style="color:black; text-decoration:none;">
+                                                    {{ refusal.country_id }}
+                                                </a>
+                                            </td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ refusal.date_refusal}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ refusal.reason}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ refusal.visa_type}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#DeleteRefusal" data-delete-id="{{ refusal.id }}" 
+                                                    data-delete-name="{{ refusal.name }}" data-url="{% url 'contact:refusal_delete' refusal.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Child records found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Work Experice Part -->
+                            <div class="tab-pane fade" id="work-exp-tab-pane" role="tabpanel" aria-labelledby="work-exp-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createworkexp" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover border mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Company</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">From</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">To</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Period</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Designation</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for workexp in work_experience  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#" class="open-edit-workexp-modal" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#EditWorkExpModal"
+                                                    data-workexp-id="{{ workexp.id }}"
+                                                    data-workexp-company="{{ workexp.company }}"
+                                                    data-workexp-designation="{{ workexp.designation }}"
+                                                    data-workexp-period="{{ workexp.period }}"
+                                                    data-workexp-date_from="{{ workexp.date_from|date:'Y-m-d' }}"
+                                                    data-workexp-date_to="{{ workexp.date_to|date:'Y-m-d' }}"
+                                                    style="color:black; text-decoration:none;">
+                                                    {{ workexp.company }}
+                                                </a>
+                                            </td>
+
+                                            <!-- <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{workexp.company}}</td> -->
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{workexp.date_from}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{workexp.date_to}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{workexp.period}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{workexp.designation}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#Deleteworkexp" data-delete-id="{{ workexp.id }}" 
+                                                    data-delete-name="{{ workexp.name }}" data-url="{% url 'contact:work_exp_delete' workexp.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Work Experice records found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Academic Part -->
+                            <div class="tab-pane fade" id="academic_details-tab-pane" role="tabpanel" aria-labelledby="academic_details-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createad" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Qualification</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Date of Completion</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">University/Awarding Body</th>
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Percentage/Grade</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ad in academic_details  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#" class="open-edit-ad-modal" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#EditAdModal"
+                                                    data-ad-id="{{ ad.id }}"
+                                                    data-ad-qualification="{{ ad.qualification.id }}"
+                                                    data-ad-university="{{ ad.university }}"
+                                                    data-ad-percentage="{{ ad.percentage }}"
+                                                    data-ad-date_of_completion="{{ ad.date_of_completion|date:'Y-m-d' }}"
+                                                    style="color:black; text-decoration:none;">
+                                                    {{ ad.qualification }}
+                                                </a>
+                                            </td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ad.date_of_completion}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ad.university}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{ad.percentage}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#DeleteAcademic_details" data-delete-id="{{ ad.id }}" 
+                                                    data-delete-name="{{ ad.name }}" data-url="{% url 'contact:academic_detail_delete' ad.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Academic Details found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Upload Doc  -->
+                            <div class="tab-pane fade" id="upload-doc-tab-pane" role="tabpanel" aria-labelledby="upload-doc-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#createdoc" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Attachment</th>                                           
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doc in upload_doc  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{doc.attach_file}}</td>
+                                            <td class="" style="text-align: end;">
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#Deleteuploaddoc" data-delete-id="{{ doc.id }}" 
+                                                    data-delete-name="{{ pay.attach_file }}" data-url="{% url 'contact:upload_doc_delete' doc.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Document found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Payment Part -->
+                            <div class="tab-pane fade" id="payment-tab-pane" role="tabpanel" aria-labelledby="payment-tab" tabindex="0">
+                                <button type="button" class=" btn btn-secondary mt-3 text-white" data-bs-toggle="modal" data-bs-target="#create_payment" data-student-id="{{student.id}}" style="background-color: #001f3f;">ADD</button>
+                                <table class="table table-hover mt-3">
+                                    <thead>
+                                        <tr class="bg-warning">
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Contact</th>                                           
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Payment Date</th>                                           
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Amount</th>                                           
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Currency</th>                                           
+                                            <th scope="col" class="py-2 px-4 text-start font-medium text-gray-900">Reference</th>                                           
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for pay in payments  %}
+                                        <tr>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#" class="open-edit-pay-modal" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#EditpaymetModal"
+                                                    data-pay-id="{{ pay.id }}"
+                                                    data-pay-contact_id="{{ pay.contact_id.id }}"
+                                                    data-pay-amount="{{ pay.amount }}"
+                                                    data-pay-currency_id="{{ pay.currency_id.id }}"
+                                                    data-pay-ref="{{ pay.ref }}"
+                                                    data-pay-payment_date="{{ pay.payment_date|date:'Y-m-d' }}"
+                                                    style="color:black; text-decoration:none;">
+                                                    {{pay.contact_id}}
+                                                </a>
+                                            </td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{pay.payment_date}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{pay.amount}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{pay.currency_id}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">{{pay.ref}}</td>
+                                            <td class="py-2 px-4 whitespace-nowrap text-gray-900">
+                                                <a href="#"style="color:red; text-decoration:none;"
+                                                    data-bs-toggle="modal" data-bs-target="#Deletepayments" data-delete-id="{{ pay.id }}" 
+                                                    data-delete-name="{{ pay.name }}" data-url="{% url 'contact:payment_delete' pay.id %}">
+                                                    <i class="bi bi-trash3 text-danger"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1-2 2H5V7l2-2h4l2 2h4l2-2h4l-2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2" />
+                                                    </svg>
+                                                    <h5 class="text-lg font-semibold">No Payments records found</h5>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>    
+                            </div>
+                        </div>
+                        {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create of Contact  -->
+    <div class="modal fade" id="createchildcontact" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Create Contact</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:child_contact_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Contact Person Name</label>
+                                    <input type="text" class="form-control" id="student_name" name="student_name" required value="{{student.name}}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="student_street" name="student_street" placeholder="Street" value="{{student.street}}">
+                                    <input type="text" class="form-control mt-2" id="student_street2" name="student_street2" placeholder="Street 2" value="{{student.street2}}">
+                                    <div class="row mt-2">
+                                        <div class="col-4">
+                                            <input type="text" class="form-control" id="student_city" name="student_city" placeholder="City" value="{{student.city}}">
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="text" class="form-control" id="student_zip" name="student_zip" placeholder="Pin Code" value="{{student.zip}}">
+                                        </div>
+                                        <div class="col-4">
+                                            <select class="form-select" id="student_state" name="student_state">
+                                                <option value=""></option>
+                                                {% for stat in state %}
+                                                    <option value="{{ stat.id }}" {% if student.state_id and student.state_id.id == stat.id %}selected{% endif %}>
+                                                        {{ stat.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="passport" class="form-label">Passport Number</label>
+                                    <input type="text" class="form-control" id="student_passport" name="student_passport" value="{{student.passport_number}}">
+                                    <small id="passport_feedback" class="text-danger"></small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nationality" class="form-label">Nationality</label>
+                                    <select class="form-select" id="student_nationality" name="student_nationality">
+                                        <option value=""></option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.id }}" {% if student.nationality and student.nationality.id == country.id %}selected{% endif %}>
+                                                {{ country.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Mobile</label>
+                                    <input type="number" class="form-control" id="student_phone" name="student_phone"  value="{{student.phone}}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="student_email" name="student_email"  value="{{student.email}}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="date_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="student_dob" name="student_dob"  value="{{student.dob|date:'Y-m-d'}}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">Gender</label><br>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" id="male" name="gender" value="Male" {% if student.gender == 'Male' %}checked{% endif %}>
+                                            <label class="form-check-label" for="male">Male</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" id="female" name="gender" value="Female" {% if student.gender == 'Female' %}checked{% endif %}>
+                                            <label class="form-check-label" for="female">Female</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" id="other" name="gender" value="Other" {% if student.gender == 'Other' %}checked{% endif %}>
+                                            <label class="form-check-label" for="other">Other</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create of Travel History -->
+    <div class="modal fade" id="createtravelhistory" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Travel History</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:travelcreate' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Country</label>
+                            <select class="form-select" id="country_id" name="country_id">
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.id }}">
+                                        {{ country.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="name" class="form-label">Date From</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from">
+                            </div>
+                            <div class="col-6">
+                                <label for="name" class="form-label">Date To</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Visa Type</label>
+                            <select class="form-select" id="visa" name="visa">
+                                <option value=""></option>
+                                {% for visa in visa_type %}
+                                    <option value="{{ visa.id }}">
+                                        {{ visa.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Purpose</label>
+                            <input type="text" class="form-control" id="purpose" name="purpose">
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create of Refusal -->
+    <div class="modal fade" id="createrefusal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Refusal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:refusalcreate' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Country</label>
+                            <select class="form-select" id="country_id" name="country_id">
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.id }}">
+                                        {{ country.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Visa Type</label>
+                            <select class="form-select" id="visa" name="visa">
+                                <option value=""></option>
+                                {% for visa in visa_type %}
+                                    <option value="{{ visa.id }}">
+                                        {{ visa.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Date of Refusal</label>
+                            <input type="date" class="form-control" id="date_of_completion" name="date_of_completion">
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Reason Refusal</label>
+                            <input type="text" class="form-control" id="reason_refusal" name="reason_refusal">
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create of Work experience -->
+    <div class="modal fade" id="createworkexp" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Work Experience</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:workexpcreate' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Company</label>
+                            <input type="text" class="form-control" id="company" name="company">
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="name" class="form-label">Date From</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from">
+                            </div>
+                            <div class="col-6">
+                                <label for="name" class="form-label">Date To</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Designation</label>
+                            <input type="text" class="form-control" id="designation" name="designation">
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create of Academic Details -->
+    <div class="modal fade" id="createad" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Academic Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:academic_detail_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Qualification</label>
+                            <select class="form-select" id="qualification" name="qualification">
+                                <option value=""></option>
+                                {% for qualification in academic_qualification %}
+                                    <option value="{{ qualification.id }}">
+                                        {{ qualification.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Date of Completion</label>
+                            <input type="date" class="form-control" id="completion" name="completion">
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Univerisity/Awarding</label>
+                            <input type="text" class="form-control" id="university_awarding" name="university_awarding">
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Percentage/Grade</label>
+                            <input type="text" class="form-control" id="percentage_grade" name="percentage_grade">
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Upload Doc -->
+    <div class="modal fade" id="createdoc" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Upload Doc</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:upload_doc_create' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Documents</label>
+                            <input type="file" class="form-control" id="document" name="document">
+                        </div>
+                        <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Payment -->
+    <div class="modal fade" id="create_payment" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning" style="color:white;">
+                    <h5 class="modal-title" id="newModalLabel">Payment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'contact:payment_create' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="parent_id" value="">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Payment Date</label>
+                            <input type="date" class="form-control" id="payment_date" name="payment_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Contact</label>
+                            <select class="form-select" id="contact" name="contact">
+                                <option value=""></option>
+                                {% for contact in all_students %}
+                                    <option value="{{ contact.id }}">
+                                        {{ contact.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="name" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="amount" name="amount">
+                            </div>
+                            <div class="col-6">
+                                <label for="name" class="form-label">Currency</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value=""></option>
+                                    {% for curr in currencies %}
+                                        <option value="{{ curr.id }}">
+                                            {{ curr.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Reference</label>
+                                <input type="text" class="form-control" id="ref" name="ref">
+                            </div>
+                            <button type="submit" class="btn btn-warning"><span class="text-white">Save</span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "delete_modal.html" with modal_id="Deletetravelhistory" %}
+    {% include "delete_modal.html" with modal_id="DeletecontactModal" %}
+    {% include "delete_modal.html" with modal_id="DeleteRefusal" %}
+    {% include "delete_modal.html" with modal_id="Deleteworkexp" %}
+    {% include "delete_modal.html" with modal_id="DeleteAcademic_details" %}
+    {% include "delete_modal.html" with modal_id="Deletepayments" %}
+    {% include "delete_modal.html" with modal_id="Deleteuploaddoc" %}
+
+    <!-- Edit Travel -->
+    <div class="modal fade" id="EditISModal" tabindex="-1" aria-labelledby="editISLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+            <form id="editTravelForm" method="POST">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="editISLabel">Edit Travel History</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                <input type="hidden" id="edit_trav_id" name="id">
+
+                <div class="mb-3">
+                    <label for="edit_country_id" class="form-label">Country</label>
+                    <select id="edit_country_id" name="country_id" class="form-select">
+                    <option value="">Select Country</option>
+                    {% for country in countries %}
+                        <option value="{{ country.id }}">{{ country.name }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_date_from" class="form-label">From Date</label>
+                    <input type="date" id="edit_date_from" name="date_from" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_date_to" class="form-label">To Date</label>
+                    <input type="date" id="edit_date_to" name="date_to" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_visa_type" class="form-label">Visa Type</label>
+                    <select id="edit_visa_type" name="visa_type" class="form-select">
+                        <option value="">Select Visa Type</option>
+                        {% for visa in visa_type %}
+                            <option value="{{ visa.id }}">{{ visa.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_purpose" class="form-label">Purpose</label>
+                    <input type="text" id="edit_purpose" name="purpose" class="form-control">
+                </div>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning">Update</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Refusal -->
+    <div class="modal fade" id="EditrefusalModal" tabindex="-1" aria-labelledby="editRefusalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form id="editRefusalForm" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header bg-warning text-white">
+                        <h5 class="modal-title" id="editRefusalLabel">Edit Refusal</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_refusal_id" name="id">
+
+                        <div class="mb-3">
+                            <label for="edit_refusal_country" class="form-label">Country</label>
+                            <select id="edit_refusal_country" name="country_id" class="form-select" required>
+                                <option value="">Select Country</option>
+                                {% for country in countries %}
+                                    <option value="{{ country.id }}">{{ country.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_refusal_visa" class="form-label">Visa Type</label>
+                            <select id="edit_refusal_visa" name="visa_type" class="form-select">
+                                <option value="">No Visa Type</option> <!-- Allow empty selection -->
+                                {% for visa in visa_type %}
+                                    <option value="{{ visa.id }}">{{ visa.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_refusal_date" class="form-label">Date of Refusal</label>
+                            <input type="date" id="edit_refusal_date" name="date_refusal" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit_refusal_reason" class="form-label">Reason</label>
+                            <textarea id="edit_refusal_reason" name="reason" class="form-control"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+     <!-- ✳️ Edit Work Experience Modal -->
+    <div class="modal fade" id="EditWorkExpModal" tabindex="-1" aria-labelledby="editWorkExpLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+            <form id="editWorkExpForm" method="POST">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="editWorkExpLabel">Edit Work Experience</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                <input type="hidden" id="edit_workexp_id" name="id">
+
+                <div class="mb-3">
+                    <label for="edit_workexp_company" class="form-label">Company</label>
+                    <input type="text" id="edit_workexp_company" name="company" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_workexp_designation" class="form-label">Designation</label>
+                    <input type="text" id="edit_workexp_designation" name="designation" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_workexp_period" class="form-label">Period</label>
+                    <input type="text" id="edit_workexp_period" name="period" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_workexp_date_from" class="form-label">Date From</label>
+                    <input type="date" id="edit_workexp_date_from" name="date_from" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="edit_workexp_date_to" class="form-label">Date To</label>
+                    <input type="date" id="edit_workexp_date_to" name="date_to" class="form-control">
+                </div>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning">Update</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Academic Details -->
+    <div class="modal fade" id="EditAdModal" tabindex="-1" aria-labelledby="EditAdModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <form method="POST" id="editAdForm">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="EditAdModalLabel">Edit Academic Detail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                <input type="hidden" id="edit_ad_id" name="ad_id">
+
+                <div class="mb-3">
+                    <label class="form-label">Qualification</label>
+                    <select class="form-select" id="edit_qualification" name="qualification">
+                        <option value=""></option>
+                        {% for qualification in academic_qualification %}
+                            <option value="{{ qualification.id }}">
+                                {{ qualification.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">University</label>
+                    <input type="text" class="form-control" id="edit_university" name="university" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Percentage</label>
+                    <input type="text" class="form-control" id="edit_percentage" name="percentage" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Date of Completion</label>
+                    <input type="date" class="form-control" id="edit_date_of_completion" name="date_of_completion" required>
+                </div>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning">Save Changes</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit of Payments -->
+     <div class="modal fade" id="EditpaymetModal" tabindex="-1" aria-labelledby="EditpaymetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="editPayForm">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="EditpaymetModalLabel">Edit Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_pay_id" name="pay_id">
+
+                        <div class="mb-3">
+                            <label class="form-label">Contact</label>
+                            <select class="form-select" id="edit_contact_id" name="contact_id" required>
+                                <option value=""></option>
+                                {% for student in all_students %}
+                                    <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="edit_amount" name="amount" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" id="edit_currency_id" name="currency_id" required>
+                                <option value=""></option>
+                                {% for currency in currencies %}
+                                    <option value="{{ currency.id }}">{{ currency.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Reference</label>
+                            <input type="text" class="form-control" id="edit_ref" name="ref">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Payment Date</label>
+                            <input type="date" class="form-control" id="edit_payment_date" name="payment_date" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+
+        // 1️⃣ Check Passport Uniqueness
+        $("#student_passport").on("keyup change", function() {
+            const passport = $(this).val().trim();
+
+            if (passport === "") {
+                $("#passport_feedback").text("");
+                $("#student_passport").removeClass("is-invalid");
+                return;
+            }
+
+            $.ajax({
+                url: "{% url 'contact:check_passport' %}",
+                data: { "passport": passport },
+                dataType: "json",
+                success: function(data) {
+                    if (data.exists) {
+                        $("#passport_feedback").text("⚠️ Passport number already exists!");
+                        $("#student_passport").addClass("is-invalid");
+                    } else {
+                        $("#passport_feedback").text("");
+                        $("#student_passport").removeClass("is-invalid");
+                    }
+                }
+            });
+        });
+
+        // 2️⃣ Show Bootstrap Toasts
+        $('.toast').each(function(){
+            new bootstrap.Toast(this).show();
+        });
+
+        // 3️⃣ Setup "Create" Modals
+        const createModals = [
+            'createchildcontact',
+            'createtravelhistory',
+            'createrefusal',
+            'createworkexp',
+            'createad',
+            'createdoc',
+            'create_payment'
+        ];
+
+        createModals.forEach(modalId => {
+            const modalEl = document.getElementById(modalId);
+            if(modalEl){
+                modalEl.addEventListener('show.bs.modal', function(event){
+                    const button = event.relatedTarget;
+                    const studentId = button.getAttribute('data-student-id');
+                    const input = modalEl.querySelector('#parent_id');
+                    if(input) input.value = studentId;
+                });
+            }
+        });
+
+        // 4️⃣ Setup "Delete" Modals
+        const deleteModals = [
+            "Deletetravelhistory",
+            "DeletecontactModal",
+            "DeleteRefusal",
+            "Deleteworkexp",
+            "DeleteAcademic_details",
+            "Deletepayments",
+            "Deleteuploaddoc"
+        ];
+
+        deleteModals.forEach(modalId => {
+            const modalEl = document.getElementById(modalId);
+            if(modalEl){
+                modalEl.addEventListener("show.bs.modal", function(event){
+                    const button = event.relatedTarget;
+                    const itemId = button.getAttribute("data-delete-id");
+                    const name = button.getAttribute("data-delete-name");
+                    const url = button.getAttribute("data-url");
+
+                    console.log(`Modal: ${modalId}, Name: ${name}, ID: ${itemId}, URL: ${url}`);
+                    console.log("Element reference:", document.getElementById(modalId + "_name"));
+
+                    // Set values in modal
+                    const nameSpan = document.getElementById(modalId + "_name");
+                    if(nameSpan) nameSpan.innerText = name;
+
+                    const formEl = document.getElementById(modalId + "_form");
+                    if(formEl) formEl.action = url;
+
+                    const idInput = document.getElementById(modalId + "_id");
+                    if(idInput) idInput.value = itemId;
+                });
+            }
+        });
+
+        // 5️⃣ Setup "Edit Travel History" Modal
+            const editTravelModal = document.getElementById("EditISModal");
+            if(editTravelModal){
+                editTravelModal.addEventListener("show.bs.modal", function(event){
+                    const button = event.relatedTarget;
+                    const travId = button.getAttribute("data-trav-id");
+                    const country = button.getAttribute("data-trav-country");
+                    const dateFrom = button.getAttribute("data-trav-date-from");
+                    const dateTo = button.getAttribute("data-trav-date-to");
+                    const visaType = button.getAttribute("data-trav-visa");
+                    const purpose = button.getAttribute("data-trav-purpose");
+
+                    // Set values
+                    $("#edit_trav_id").val(travId);
+                    $("#edit_date_from").val(dateFrom);
+                    $("#edit_date_to").val(dateTo);
+                    $("#edit_purpose").val(purpose);
+
+                    // Set selected options for relation fields
+                    $("#edit_country_id").val(country).trigger("change");
+                    $("#edit_visa_type").val(visaType).trigger("change");
+
+                    // Optional: Set form action dynamically
+                    $("#editTravelForm").attr("action", `/contact/travel/update/${travId}/`);
+                });
+            }
+            const editRefusalModal = document.getElementById("EditrefusalModal");
+
+            if (editRefusalModal) {
+                editRefusalModal.addEventListener("show.bs.modal", function(event) {
+                    const button = event.relatedTarget;
+
+                    // Get data attributes from the clicked link
+                    const refusalId = button.getAttribute("data-refusal-id");
+                    const countryId = button.getAttribute("data-refusal-country") || "";
+                    const visaId = button.getAttribute("data-refusal-visa") || "";
+                    const dateRefusal = button.getAttribute("data-refusal-date") || "";
+                    const reason = button.getAttribute("data-refusal-reason") || "";
+
+                    // Set values in the modal
+                    $("#edit_refusal_id").val(refusalId);
+                    $("#edit_refusal_country").val(countryId).trigger("change");
+                    $("#edit_refusal_visa").val(visaId).trigger("change"); // can be empty
+                    $("#edit_refusal_date").val(dateRefusal);
+                    $("#edit_refusal_reason").val(reason);
+
+                    // Dynamically set the form action
+                    $("#editRefusalForm").attr("action", `/contact/refusal/update/${refusalId}/`);
+                });
+            }
+            const editWorkExpModal = document.getElementById("EditWorkExpModal");
+                if (editWorkExpModal) {
+                editWorkExpModal.addEventListener("show.bs.modal", function (event) {
+                    const button = event.relatedTarget;
+
+                    // Get data attributes from clicked link
+                    const workexpId = button.getAttribute("data-workexp-id");
+                    const company = button.getAttribute("data-workexp-company");
+                    const designation = button.getAttribute("data-workexp-designation");
+                    const period = button.getAttribute("data-workexp-period");
+                    const dateFrom = button.getAttribute("data-workexp-date_from");
+                    const dateTo = button.getAttribute("data-workexp-date_to");
+
+                    // Set values in modal
+                    $("#edit_workexp_id").val(workexpId);
+                    $("#edit_workexp_company").val(company);
+                    $("#edit_workexp_designation").val(designation);
+                    $("#edit_workexp_period").val(period);
+                    $("#edit_workexp_date_from").val(dateFrom);
+                    $("#edit_workexp_date_to").val(dateTo);
+
+                    // Dynamically set form action for update
+                    $("#editWorkExpForm").attr("action", `/contact/workexp/update/${workexpId}/`);
+                });
+            }
+            const editAdModal = document.getElementById("EditAdModal");
+            if (editAdModal) {
+                editAdModal.addEventListener("show.bs.modal", function(event) {
+                    const button = event.relatedTarget;
+
+                    const adId = button.getAttribute("data-ad-id");
+                    const qualification = button.getAttribute("data-ad-qualification");
+                    const university = button.getAttribute("data-ad-university");
+                    const percentage = button.getAttribute("data-ad-percentage");
+                    const dateOfCompletion = button.getAttribute("data-ad-date_of_completion");
+
+                    $("#edit_ad_id").val(adId);
+                    $("#edit_qualification").val(qualification);
+                    $("#edit_university").val(university);
+                    $("#edit_percentage").val(percentage);
+                    $("#edit_date_of_completion").val(dateOfCompletion);
+
+                    $("#editAdForm").attr("action", `/contact/academic_details/update/${adId}/`);
+                });
+            }
+            const editPayModal = document.getElementById("EditpaymetModal");
+            if (editPayModal) {
+                editPayModal.addEventListener("show.bs.modal", function(event) {
+                    const button = event.relatedTarget;
+
+                    const payId = button.getAttribute("data-pay-id");
+                    const contactId = button.getAttribute("data-pay-contact_id");
+                    const amount = button.getAttribute("data-pay-amount");
+                    const currencyId = button.getAttribute("data-pay-currency_id");
+                    const ref = button.getAttribute("data-pay-ref");
+                    const paymentDate = button.getAttribute("data-pay-payment_date");
+
+                    // Fill modal fields
+                    $("#edit_pay_id").val(payId);
+                    $("#edit_contact_id").val(contactId).trigger("change");
+                    $("#edit_amount").val(amount);
+                    $("#edit_currency_id").val(currencyId).trigger("change");
+                    $("#edit_ref").val(ref);
+                    $("#edit_payment_date").val(paymentDate);
+
+                    // Dynamically set the form action
+                    $("#editPayForm").attr("action", `/contact/payment/update/${payId}/`);
+                });
+            }
+
+        });
+    </script>
+
+
+
+</body>
+</html>
