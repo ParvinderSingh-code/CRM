@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.models import User 
 
+# functions
 def login_view(request):
     if request.user.is_authenticated:  
         return redirect('contact:student')

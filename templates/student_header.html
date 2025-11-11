@@ -90,7 +90,7 @@
             <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
                 <a class="nav-link {% if request.resolver_match.url_name in 'contact:student,contact:students_create,contact:student_edit,contact:agent,contact:agent_create,contact:agent_update,contact:agent_delete,contact:applied,contact:applied_create,contact:applied_update,contact:applied_delete' %} bg-warning fw-bold rounded-3 text-white {% endif %}" href="{% url 'contact:student' %}">
                     <i class="bi bi-people {% if request.resolver_match.url_name in 'contact:student,contact:students_create,contact:student_edit,contact:agent,contact:agent_create,contact:agent_update,contact:agent_delete,contact:applied,contact:applied_create,contact:applied_update,contact:applied_delete' %} text-white {% endif %}"></i>
-                    <p>Contact</p>
+                    <p>Student</p>
                 </a>
             </li>
             <li class="nav-item" style=" margin: 0 1rem 0.0rem 1rem;">
